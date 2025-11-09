@@ -55,7 +55,6 @@
             margin: 0;
         }
 
-        /* สำหรับหน้าจอปกติ (คอมพิวเตอร์) */
         .input-group { 
             margin-bottom: 10px; 
             display: flex; 
@@ -63,73 +62,66 @@
             align-items: center; 
         }
 
-        .input-group label, 
-        .input-group input {
-            flex: 1;
-            margin-left: 5px;
-            margin-right: 5px;
-        }
-
+        .input-group label, .input-group input { flex: 1; margin: 0 5px; }
         .input-group label {
-            text-align: right;
-            padding-right: 10px;
-            color: #555;
+            text-align: right; padding-right: 10px; color: #555;
         }
-
         .input-group input { 
-            padding: 8px; 
-            border: 1px solid #ccc; 
-            border-radius: 4px; 
-            transition: border-color 0.3s;
-            text-align: right; /* จัดชิดขวาเพื่อให้ดูเป็นตัวเลข */
+            padding: 8px; border: 1px solid #ccc; border-radius: 4px; 
+            transition: border-color 0.3s; text-align: right;
         }
-
-        .input-group input:focus {
-            border-color: #00796b;
-        }
-
+        .input-group input:focus { border-color: #00796b; }
         input[readonly] { 
-            background-color: #e0f2f1;
-            cursor: not-allowed; 
-            font-weight: bold;
-            color: #004d40;
+            background-color: #e0f2f1; cursor: not-allowed; font-weight: bold; color: #004d40;
         }
 
         /* --- MEDIA QUERY สำหรับมือถือ --- */
         @media (max-width: 768px) {
-            .input-group {
-                flex-wrap: wrap; /* ทำให้รายการตกลงบรรทัดใหม่ได้ */
+            .input-group { flex-wrap: wrap; }
+            .input-group label, .input-group input {
+                flex-basis: 100%; margin: 0; box-sizing: border-box;
             }
-
-            .input-group label,
-            .input-group input {
-                flex-basis: 100%; /* ทำให้ label และ input ใช้ความกว้างเต็มบรรทัด */
-                margin-left: 0;
-                margin-right: 0;
-                box-sizing: border-box; /* คำนวณ padding/border รวมใน width */
-            }
-            
             .input-group label {
-                text-align: left; /* จัดชิดซ้ายบนมือถือ */
-                padding-right: 0;
-                margin-top: 10px; /* เพิ่มระยะห่างระหว่างกลุ่มย่อย */
-                font-weight: bold;
+                text-align: left; margin-top: 10px; font-weight: bold;
             }
+            .input-group input { margin-top: 5px; }
+            .additional-title { display: none; }
+        }
 
-            .input-group input {
-                margin-top: 5px;
-            }
+        /* CSS สำหรับปุ่มสรุปและคัดลอก */
+        .summary-button {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background-color: #ff9800;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            cursor: pointer;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            transition: background-color 0.3s;
+        }
+        .summary-button:hover { background-color: #e68900; }
 
-            /* ซ่อนหัวข้อย่อย "สำหรับ XXX" บนมือถือเพื่อประหยัดพื้นที่ */
-            .additional-title {
-                display: none; 
-            }
+        /* พื้นที่แสดงผลสรุปแบบข้อความ */
+        #report-output {
+            background-color: #ffffff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            white-space: pre-wrap; /* รักษารูปแบบวรรคตอนและบรรทัดใหม่ */
+            font-family: monospace; /* ใช้ฟอนต์ที่จัดเรียงตัวอักษรเท่ากัน */
+            display: none; /* ซ่อนไว้ก่อน */
+            border: 1px solid #ccc;
+            margin-bottom: 10px;
+            cursor: copy;
         }
 
     </style>
 </head>
 <body>
-
     <header>
         <h1>สูตรคำนวนปิดสต๊อก Fresh Food</h1>
     </header>
@@ -152,19 +144,19 @@
                 <label>Profit (ใส่ตัวเลข):</label>
                 <input type="text" id="tf_profit" value="" oninput="formatNumberInput(this); calculateRow('tf_');">
                 <label>Margin (ใส่ตัวเลข):</label>
-                <!-- ช่อง Margin เป็น Input ตัวเลขธรรมดา ไม่มี % คำนวณอัตโนมัติ -->
-                <input type="text" id="tf_margin" value="" oninput="formatNumberInput(this); calculateRow('tf_');">
+                <!-- แก้ไขตรงนี้: เปลี่ยนเป็น type="number" -->
+                <input type="number" id="tf_margin" value="" oninput="calculateRow('tf_');">
             </div>
              <div class="input-group">
                 <label>ยอดยิงทิ้ง (ยอดรวม):</label>
                 <input type="text" id="tf_wasted_value" value="" oninput="formatNumberInput(this); calculateRow('tf_');">
-                <label>ยอด ยิงทิ้ง (% จาก Sale):</label>
+                <label>Shing (คำนวณ %):</label>
                 <input type="text" id="tf_wasted_percent" readonly>
             </div>
             <div class="input-group">
                 <label>CloseStock (ยอดรวม):</label>
                 <input type="text" id="tf_closestock_value" value="" oninput="formatNumberInput(this); calculateRow('tf_');">
-                <label>ยอด CloseStock (วัน):</label>
+                <label>Inventory (คำนวณวัน):</label>
                 <input type="text" id="tf_closestock_days" readonly>
             </div>
         </div>
@@ -186,23 +178,24 @@
                 <label>Profit (ใส่ตัวเลข):</label>
                 <input type="text" id="aust_profit" value="" oninput="formatNumberInput(this); calculateRow('aust_');">
                 <label>Margin (ใส่ตัวเลข):</label>
-                <input type="text" id="aust_margin" value="" oninput="formatNumberInput(this); calculateRow('aust_');">
+                <!-- แก้ไขตรงนี้: เปลี่ยนเป็น type="number" -->
+                <input type="number" id="aust_margin" value="" oninput="calculateRow('aust_');">
             </div>
              <div class="input-group">
                 <label>ยอดยิงทิ้ง (ยอดรวม):</label>
                 <input type="text" id="aust_wasted_value" value="" oninput="formatNumberInput(this); calculateRow('aust_');">
-                <label>ยอด ยิงทิ้ง (% จาก Sale):</label>
+                <label>Shing (คำนวณ %):</label>
                 <input type="text" id="aust_wasted_percent" readonly>
             </div>
             <div class="input-group">
                 <label>CloseStock (ยอดรวม):</label>
                 <input type="text" id="aust_closestock_value" value="" oninput="formatNumberInput(this); calculateRow('aust_');">
-                <label>ยอด CloseStock (วัน):</label>
+                <label>Inventory (คำนวณวัน):</label>
                 <input type="text" id="aust_closestock_days" readonly>
             </div>
         </div>
 
-        <!-- Andaman Local -->
+        <!-- กลุ่ม Andaman Local -->
         <div class="category-group">
             <div class="header-group">
                 <div class="category-title">Andaman Local</div>
@@ -218,23 +211,24 @@
                 <label>Profit (ใส่ตัวเลข):</label>
                 <input type="text" id="andaman_profit" value="" oninput="formatNumberInput(this); calculateRow('andaman_');">
                 <label>Margin (ใส่ตัวเลข):</label>
-                <input type="text" id="andaman_margin" value="" oninput="formatNumberInput(this); calculateRow('andaman_');">
+                <!-- แก้ไขตรงนี้: เปลี่ยนเป็น type="number" -->
+                <input type="number" id="andaman_margin" value="" oninput="calculateRow('andaman_');">
             </div>
              <div class="input-group">
                 <label>ยอดยิงทิ้ง (ยอดรวม):</label>
                 <input type="text" id="andaman_wasted_value" value="" oninput="formatNumberInput(this); calculateRow('andaman_');">
-                <label>ยอด ยิงทิ้ง (% จาก Sale):</label>
+                <label>Shing (คำนวณ %):</label>
                 <input type="text" id="andaman_wasted_percent" readonly>
             </div>
             <div class="input-group">
                 <label>CloseStock (ยอดรวม):</label>
                 <input type="text" id="andaman_closestock_value" value="" oninput="formatNumberInput(this); calculateRow('andaman_');">
-                <label>ยอด CloseStock (วัน):</label>
+                <label>Inventory (คำนวณวัน):</label>
                 <input type="text" id="andaman_closestock_days" readonly>
             </div>
         </div>
         
-        <!-- Imp. Seafood -->
+        <!-- กลุ่ม Imp. Seafood -->
         <div class="category-group">
             <div class="header-group">
                 <div class="category-title">Imp. Seafood</div>
@@ -250,27 +244,28 @@
                 <label>Profit (ใส่ตัวเลข):</label>
                 <input type="text" id="impseafood_profit" value="" oninput="formatNumberInput(this); calculateRow('impseafood_');">
                 <label>Margin (ใส่ตัวเลข):</label>
-                <input type="text" id="impseafood_margin" value="" oninput="formatNumberInput(this); calculateRow('impseafood_');">
+                <!-- แก้ไขตรงนี้: เปลี่ยนเป็น type="number" -->
+                <input type="number" id="impseafood_margin" value="" oninput="calculateRow('impseafood_');">
             </div>
              <div class="input-group">
                 <label>ยอดยิงทิ้ง (ยอดรวม):</label>
                 <input type="text" id="impseafood_wasted_value" value="" oninput="formatNumberInput(this); calculateRow('impseafood_');">
-                <label>ยอด ยิงทิ้ง (% จาก Sale):</label>
+                <label>Shing (คำนวณ %):</label>
                 <input type="text" id="impseafood_wasted_percent" readonly>
             </div>
             <div class="input-group">
                 <label>CloseStock (ยอดรวม):</label>
                 <input type="text" id="impseafood_closestock_value" value="" oninput="formatNumberInput(this); calculateRow('impseafood_');">
-                <label>ยอด CloseStock (วัน):</label>
+                <label>Inventory (คำนวณวัน):</label>
                 <input type="text" id="impseafood_closestock_days" readonly>
             </div>
         </div>
 
-        <!-- Delica imp. Couter -->
+        <!-- กลุ่ม Delica imp. Counter -->
         <div class="category-group">
             <div class="header-group">
-                <div class="category-title">Delica imp. Couter</div>
-                <div class="additional-title">สำหรับ Delica imp. Couter</div> 
+                <div class="category-title">Delica imp. Counter</div>
+                <div class="additional-title">สำหรับ Delica imp. Counter</div> 
             </div>
             <div class="input-group">
                 <label>Sale (ยอดรวม):</label>
@@ -282,23 +277,24 @@
                 <label>Profit (ใส่ตัวเลข):</label>
                 <input type="text" id="delicaimp_profit" value="" oninput="formatNumberInput(this); calculateRow('delicaimp_');">
                 <label>Margin (ใส่ตัวเลข):</label>
-                <input type="text" id="delicaimp_margin" value="" oninput="formatNumberInput(this); calculateRow('delicaimp_');">
+                <!-- แก้ไขตรงนี้: เปลี่ยนเป็น type="number" -->
+                <input type="number" id="delicaimp_margin" value="" oninput="calculateRow('delicaimp_');">
             </div>
              <div class="input-group">
                 <label>ยอดยิงทิ้ง (ยอดรวม):</label>
                 <input type="text" id="delicaimp_wasted_value" value="" oninput="formatNumberInput(this); calculateRow('delicaimp_');">
-                <label>ยอด ยิงทิ้ง (% จาก Sale):</label>
+                <label>Shing (คำนวณ %):</label>
                 <input type="text" id="delicaimp_wasted_percent" readonly>
             </div>
             <div class="input-group">
                 <label>CloseStock (ยอดรวม):</label>
                 <input type="text" id="delicaimp_closestock_value" value="" oninput="formatNumberInput(this); calculateRow('delicaimp_');">
-                <label>ยอด CloseStock (วัน):</label>
+                <label>Inventory (คำนวณวัน):</label>
                 <input type="text" id="delicaimp_closestock_days" readonly>
             </div>
         </div>
 
-         <!-- Delica Local -->
+        <!-- กลุ่ม Delica Local -->
         <div class="category-group">
             <div class="header-group">
                 <div class="category-title">Delica Local</div>
@@ -314,21 +310,31 @@
                 <label>Profit (ใส่ตัวเลข):</label>
                 <input type="text" id="delicalocal_profit" value="" oninput="formatNumberInput(this); calculateRow('delicalocal_');">
                 <label>Margin (ใส่ตัวเลข):</label>
-                <input type="text" id="delicalocal_margin" value="" oninput="formatNumberInput(this); calculateRow('delicalocal_');">
+                <!-- แก้ไขตรงนี้: เปลี่ยนเป็น type="number" -->
+                <input type="number" id="delicalocal_margin" value="" oninput="calculateRow('delicalocal_');">
             </div>
              <div class="input-group">
                 <label>ยอดยิงทิ้ง (ยอดรวม):</label>
                 <input type="text" id="delicalocal_wasted_value" value="" oninput="formatNumberInput(this); calculateRow('delicalocal_');">
-                <label>ยอด ยิงทิ้ง (% จาก Sale):</label>
+                <label>Shing (คำนวณ %):</label>
                 <input type="text" id="delicalocal_wasted_percent" readonly>
             </div>
             <div class="input-group">
                 <label>CloseStock (ยอดรวม):</label>
                 <input type="text" id="delicalocal_closestock_value" value="" oninput="formatNumberInput(this); calculateRow('delicalocal_');">
-                <label>ยอด CloseStock (วัน):</label>
+                <label>Inventory (คำนวณวัน):</label>
                 <input type="text" id="delicalocal_closestock_days" readonly>
             </div>
         </div>
+
+        <!-- ปุ่มสร้างและคัดลอก Report -->
+        <button class="summary-button" onclick="copyReport()">สร้างและคัดลอก Report</button>
+
+        <!-- พื้นที่แสดงผลสรุปแบบข้อความ (ซ่อนไว้) -->
+        <div id="report-output" onclick="copyReport()">
+            <!-- เนื้อหาจะถูกสร้างโดย JavaScript -->
+        </div>
+
     </div>
 
     <script>
@@ -336,53 +342,123 @@
         function formatNumberInput(input) {
             let value = input.value.replace(/,/g, '');
             if (!isNaN(value) && value !== '') {
-                const parts = value.split('.');
-                let integerPart = parts[0];
-                let decimalPart = parts.length > 1 ? '.' + parts[1] : '';
-
-                // ใช้ toLocaleString สำหรับส่วนจำนวนเต็มเท่านั้น
-                integerPart = parseFloat(integerPart).toLocaleString('en-US', {maximumFractionDigits: 0});
-                
-                input.value = integerPart + decimalPart;
+                // ใช้ onblur แทน oninput เพื่อให้พิมพ์จุดได้ลื่นไหลก่อน
+                input.value = parseFloat(value).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 10 });
             } else if (value === '') {
                  input.value = '';
             }
         }
 
-        // ฟังก์ชันคำนวณหลัก
-        function calculateRow(prefix) {
-            const saleInput = document.getElementById(prefix + 'sale');
-            if (!saleInput) return;
+        // เพิ่ม Event Listener สำหรับการจัด format เมื่อออกจากช่อง input
+        document.querySelectorAll('input[type="text"]').forEach(input => {
+            input.addEventListener('blur', function() {
+                formatNumberInput(this);
+            });
+        });
 
-            // ดึงค่าจริงที่เป็นตัวเลขโดยการลบ comma ออกก่อนคำนวณ
-            const sale = parseFloat(saleInput.value.replace(/,/g, '')) || 0;
-            const wastedValue = parseFloat(document.getElementById(prefix + 'wasted_value').value.replace(/,/g, '')) || 0;
-            const closestockValue = parseFloat(document.getElementById(prefix + 'closestock_value').value.replace(/,/g, '')) || 0;
-            
-            // ไม่ต้องดึงค่า margin มาคำนวณในนี้แล้ว เพราะมันเป็น input ธรรมดา
-            
+
+        // ฟังก์ชันคำนวณหลักต่อแถว
+        function calculateRow(prefix) {
+            // ใช้ฟังก์ชันเสริมเพื่อรับค่าตัวเลขที่ถูกต้อง
+            // สำหรับช่อง type="text" ต้องลบ comma ออก, สำหรับ type="number" ไม่ต้อง
+            const getNum = (id) => {
+                const inputEl = document.getElementById(id);
+                if (inputEl.type === 'number') {
+                    return parseFloat(inputEl.value) || 0;
+                }
+                return parseFloat(inputEl.value.replace(/,/g, '')) || 0;
+            };
+
+            const sale = getNum(prefix + 'sale');
+            const wastedValue = getNum(prefix + 'wasted_value');
+            const closestockValue = getNum(prefix + 'closestock_value');
+            const margin = getNum(prefix + 'margin'); // ดึงค่า Margin
+
+            // ตัวแปรสำหรับแสดงผล
             const saleDayInput = document.getElementById(prefix + 'sale_day');
             const wastedPercentInput = document.getElementById(prefix + 'wasted_percent');
             const closestockDaysInput = document.getElementById(prefix + 'closestock_days');
 
+            // คำนวณ
             const salePerDay = sale / 7;
-            const wastedPercent = (wastedValue / sale) * 100;
-            const closestockDays = closestockValue / salePerDay;
+            const wastedPercent = (sale > 0) ? (wastedValue / sale) * 100 : 0;
+            const closestockDays = (salePerDay > 0) ? closestockValue / salePerDay : 0;
 
-            // แสดงผลลัพธ์ในช่อง readonly พร้อม format
-            saleDayInput.value = (salePerDay === 0 || isNaN(salePerDay)) ? '' : salePerDay.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            // แสดงผล
+            const formatNum = (num) => isFinite(num) && num !== 0 ? num.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '';
+            const formatPercent = (num) => isFinite(num) && num !== 0 ? num.toFixed(2) + '%' : '';
+            const formatDays = (num) => isFinite(num) && num > 0 ? num.toFixed(2) + ' วัน' : '';
+
+            saleDayInput.value = formatNum(salePerDay);
+            wastedPercentInput.value = formatPercent(wastedPercent);
+            closestockDaysInput.value = formatDays(closestockDays);
+            // ไม่ต้องทำอะไรกับ margin input เพราะเป็น type="number" จัดการเอง
+        }
+
+        // ฟังก์ชันสำหรับสร้างและคัดลอก Report ทั้งหมด
+        function copyReport() {
+            const prefixes = [
+                {id: 'tf_', title: 'TF Beef'},
+                {id: 'aust_', title: 'Aust Beef'},
+                {id: 'andaman_', title: 'Andaman Local'},
+                {id: 'impseafood_', title: 'Imp. Seafood'},
+                {id: 'delicaimp_', title: 'Delica imp. Counter'},
+                {id: 'delicalocal_', title: 'Delica Local'},
+            ];
             
-            if (!isFinite(wastedPercent) || isNaN(wastedPercent)) {
-                wastedPercentInput.value = '';
-            } else {
-                wastedPercentInput.value = wastedPercent.toFixed(2) + '%';
-            }
+            const location = prompt("กรุณาใส่ชื่อสาขา (เช่น กมลา1057):", "กมลา1057");
+            const date = prompt("กรุณาใส่วันที่ (เช่น 28/10/2025):", "28/10/2025");
 
-            if (!isFinite(closestockDays) || closestockDays <= 0 || isNaN(closestockDays)) {
-                 closestockDaysInput.value = '';
-            } else {
-                 closestockDaysInput.value = closestockDays.toFixed(2) + ' วัน';
-            }
+            if (!location || !date) return;
+
+            let reportText = `แจ้งยอดปิดสต๊อกสาขา${location}\nวันที่ ${date}\n\n`;
+
+            const getNum = (id) => {
+                const inputEl = document.getElementById(id);
+                if (inputEl.type === 'number') {
+                    return parseFloat(inputEl.value) || 0;
+                }
+                return parseFloat(inputEl.value.replace(/,/g, '')) || 0;
+            };
+            const formatNum = (num) => isFinite(num) && num !== 0 ? num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00';
+            const formatPercent = (num) => isFinite(num) && num !== 0 ? num.toFixed(2) : '0.00';
+            const formatDays = (num) => isFinite(num) && num > 0 ? num.toFixed(2) : '0.00';
+
+
+            prefixes.forEach(item => {
+                const prefix = item.id;
+                const sale = getNum(prefix + 'sale');
+                const profit = getNum(prefix + 'profit');
+                const margin = getNum(prefix + 'margin');
+                const wastedValue = getNum(prefix + 'wasted_value');
+                
+                const salePerDay = sale / 7;
+                const wastedPercent = (sale > 0) ? (wastedValue / sale) * 100 : 0;
+                const closestockValue = getNum(prefix + 'closestock_value');
+                const closestockDays = (salePerDay > 0) ? closestockValue / salePerDay : 0;
+
+
+                reportText += `${item.title}\n`;
+                reportText += `Sale ${formatNum(sale)}\n`;
+                reportText += `Sale/ต่อวัน ${formatNum(salePerDay)}\n`;
+                reportText += `Profit ${formatNum(profit)}\n`;
+                reportText += `Margin ${formatPercent(margin)}%\n`; // ยังคงใส่ % ตอนสรุปรายงาน
+                reportText += `Shing ${formatPercent(wastedPercent)}%\n`;
+                reportText += `Inventory ${formatDays(closestockDays)} วัน\n\n`;
+            });
+
+            reportText += `แจ้งเพื่อทราบ\nขอบคุณครับ`;
+
+            const outputEl = document.getElementById('report-output');
+            outputEl.innerText = reportText;
+            outputEl.style.display = 'block';
+
+            navigator.clipboard.writeText(reportText).then(() => {
+                alert("คัดลอก Report ไปยังคลิปบอร์ดแล้ว!");
+            }).catch(err => {
+                console.error('Could not copy text: ', err);
+                alert("ไม่สามารถคัดลอกข้อความอัตโนมัติได้ กรุณาไฮไลท์และคัดลอกด้วยตนเองจากกล่องข้อความด้านล่าง");
+            });
         }
     </script>
 
