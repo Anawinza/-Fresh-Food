@@ -95,32 +95,51 @@
             color: #004d40;
         }
 
+        /* CSS สำหรับกลุ่ม Margin ใหม่ */
+        .input-group-margin {
+            display: flex;
+            align-items: center;
+            flex: 1; /* ใช้พื้นที่เท่า input อื่นๆ */
+        }
+
+        .percent-sign {
+            margin-left: -20px; /* ขยับตัว % เข้าไปใกล้ input */
+            padding-right: 5px;
+            pointer-events: none; /* ทำให้คลิกผ่านตัว % ไปที่ input ได้ */
+            color: #555;
+        }
+
         /* --- MEDIA QUERY สำหรับมือถือ --- */
         @media (max-width: 768px) {
             .input-group {
-                flex-wrap: wrap; /* ทำให้รายการตกลงบรรทัดใหม่ได้ */
+                flex-wrap: wrap; 
             }
 
             .input-group label,
             .input-group input {
-                flex-basis: 100%; /* ทำให้ label และ input ใช้ความกว้างเต็มบรรทัด */
+                flex-basis: 100%; 
                 margin-left: 0;
                 margin-right: 0;
-                box-sizing: border-box; /* คำนวณ padding/border รวมใน width */
+                box-sizing: border-box; 
             }
             
             .input-group label {
-                text-align: left; /* จัดชิดซ้ายบนมือถือ */
+                text-align: left; 
                 padding-right: 0;
-                margin-top: 10px; /* เพิ่มระยะห่างระหว่างกลุ่มย่อย */
+                margin-top: 10px; 
                 font-weight: bold;
             }
 
             .input-group input {
                 margin-top: 5px;
             }
+            
+            .input-group-margin {
+                flex-basis: 100%;
+                margin-left: 0;
+                margin-right: 0;
+            }
 
-            /* ซ่อนหัวข้อย่อย "สำหรับ XXX" บนมือถือเพื่อประหยัดพื้นที่ */
             .additional-title {
                 display: none; 
             }
@@ -151,9 +170,12 @@
             <div class="input-group">
                 <label>Profit (ใส่ตัวเลข):</label>
                 <input type="text" id="tf_profit" value="" oninput="formatNumberInput(this); calculateRow('tf_');">
-                <label>Margin (คำนวณ %):</label>
-                <!-- ช่อง readonly สำหรับแสดงผล Margin ที่มี % -->
-                <input type="text" id="tf_margin_percent" readonly>
+                <label>Margin (ใส่ตัวเลข):</label>
+                <!-- ปรับโครงสร้าง HTML สำหรับ Margin -->
+                <div class="input-group-margin">
+                    <input type="text" id="tf_margin" value="" oninput="formatNumberInput(this); calculateRow('tf_');">
+                    <span class="percent-sign">%</span>
+                </div>
             </div>
              <div class="input-group">
                 <label>ยอดยิงทิ้ง (ยอดรวม):</label>
@@ -185,8 +207,11 @@
             <div class="input-group">
                 <label>Profit (ใส่ตัวเลข):</label>
                 <input type="text" id="aust_profit" value="" oninput="formatNumberInput(this); calculateRow('aust_');">
-                <label>Margin (คำนวณ %):</label>
-                <input type="text" id="aust_margin_percent" readonly>
+                <label>Margin (ใส่ตัวเลข):</label>
+                <div class="input-group-margin">
+                    <input type="text" id="aust_margin" value="" oninput="formatNumberInput(this); calculateRow('aust_');">
+                    <span class="percent-sign">%</span>
+                </div>
             </div>
              <div class="input-group">
                 <label>ยอดยิงทิ้ง (ยอดรวม):</label>
@@ -217,8 +242,11 @@
             <div class="input-group">
                 <label>Profit (ใส่ตัวเลข):</label>
                 <input type="text" id="andaman_profit" value="" oninput="formatNumberInput(this); calculateRow('andaman_');">
-                <label>Margin (คำนวณ %):</label>
-                <input type="text" id="andaman_margin_percent" readonly>
+                <label>Margin (ใส่ตัวเลข):</label>
+                <div class="input-group-margin">
+                    <input type="text" id="andaman_margin" value="" oninput="formatNumberInput(this); calculateRow('andaman_');">
+                    <span class="percent-sign">%</span>
+                </div>
             </div>
              <div class="input-group">
                 <label>ยอดยิงทิ้ง (ยอดรวม):</label>
@@ -249,8 +277,11 @@
             <div class="input-group">
                 <label>Profit (ใส่ตัวเลข):</label>
                 <input type="text" id="impseafood_profit" value="" oninput="formatNumberInput(this); calculateRow('impseafood_');">
-                <label>Margin (คำนวณ %):</label>
-                <input type="text" id="impseafood_margin_percent" readonly>
+                <label>Margin (ใส่ตัวเลข):</label>
+                <div class="input-group-margin">
+                    <input type="text" id="impseafood_margin" value="" oninput="formatNumberInput(this); calculateRow('impseafood_');">
+                    <span class="percent-sign">%</span>
+                </div>
             </div>
              <div class="input-group">
                 <label>ยอดยิงทิ้ง (ยอดรวม):</label>
@@ -281,8 +312,11 @@
             <div class="input-group">
                 <label>Profit (ใส่ตัวเลข):</label>
                 <input type="text" id="delicaimp_profit" value="" oninput="formatNumberInput(this); calculateRow('delicaimp_');">
-                <label>Margin (คำนวณ %):</label>
-                <input type="text" id="delicaimp_margin_percent" readonly>
+                <label>Margin (ใส่ตัวเลข):</label>
+                <div class="input-group-margin">
+                    <input type="text" id="delicaimp_margin" value="" oninput="formatNumberInput(this); calculateRow('delicaimp_');">
+                    <span class="percent-sign">%</span>
+                </div>
             </div>
              <div class="input-group">
                 <label>ยอดยิงทิ้ง (ยอดรวม):</label>
@@ -313,8 +347,11 @@
             <div class="input-group">
                 <label>Profit (ใส่ตัวเลข):</label>
                 <input type="text" id="delicalocal_profit" value="" oninput="formatNumberInput(this); calculateRow('delicalocal_');">
-                <label>Margin (คำนวณ %):</label>
-                <input type="text" id="delicalocal_margin_percent" readonly>
+                <label>Margin (ใส่ตัวเลข):</label>
+                <div class="input-group-margin">
+                    <input type="text" id="delicalocal_margin" value="" oninput="formatNumberInput(this); calculateRow('delicalocal_');">
+                    <span class="percent-sign">%</span>
+                </div>
             </div>
              <div class="input-group">
                 <label>ยอดยิงทิ้ง (ยอดรวม):</label>
@@ -332,13 +369,13 @@
     </div>
 
     <script>
-        // ฟังก์ชันสำหรับใส่ comma ใน input ตัวเลขทั่วไป (Sale, Profit, Wasted, Closestock)
+        // ฟังก์ชันสำหรับใส่ comma ใน input ตัวเลขทั่วไป
         function formatNumberInput(input) {
             let value = input.value.replace(/,/g, '');
             if (!isNaN(value) && value !== '') {
                 const parts = value.split('.');
                 let integerPart = parts;
-                let decimalPart = parts.length > 1 ? '.' + parts : '';
+                let decimalPart = parts.length > 1 ? '.' + parts[1] : ''; // แก้ไขการจัดการทศนิยม
 
                 integerPart = parseFloat(integerPart).toLocaleString('en-US', {maximumFractionDigits: 0});
                 
@@ -355,18 +392,17 @@
 
             // ดึงค่าจริงที่เป็นตัวเลขโดยการลบ comma ออกก่อนคำนวณ
             const sale = parseFloat(saleInput.value.replace(/,/g, '')) || 0;
-            const profit = parseFloat(document.getElementById(prefix + 'profit').value.replace(/,/g, '')) || 0;
             const wastedValue = parseFloat(document.getElementById(prefix + 'wasted_value').value.replace(/,/g, '')) || 0;
             const closestockValue = parseFloat(document.getElementById(prefix + 'closestock_value').value.replace(/,/g, '')) || 0;
+            // ดึงค่า Margin โดยการลบ % ออก
+            const marginValue = parseFloat(document.getElementById(prefix + 'margin').value.replace(/%/g, '')) || 0;
             
             const saleDayInput = document.getElementById(prefix + 'sale_day');
-            const marginPercentInput = document.getElementById(prefix + 'margin_percent');
             const wastedPercentInput = document.getElementById(prefix + 'wasted_percent');
             const closestockDaysInput = document.getElementById(prefix + 'closestock_days');
 
             const salePerDay = sale / 7;
             const wastedPercent = (wastedValue / sale) * 100;
-            const margin = (profit / sale) * 100; // คำนวณ Margin จาก Profit/Sale
             const closestockDays = closestockValue / salePerDay;
 
             // แสดงผลลัพธ์ในช่อง readonly พร้อม format
@@ -376,12 +412,6 @@
                 wastedPercentInput.value = '';
             } else {
                 wastedPercentInput.value = wastedPercent.toFixed(2) + '%';
-            }
-            
-            if (!isFinite(margin) || isNaN(margin)) {
-                marginPercentInput.value = ''; // แสดงเป็นช่องว่าง ถ้า Sale หรือ Profit เป็น 0
-            } else {
-                marginPercentInput.value = margin.toFixed(2) + '%'; 
             }
 
             if (!isFinite(closestockDays) || closestockDays <= 0 || isNaN(closestockDays)) {
