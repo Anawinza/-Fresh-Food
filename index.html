@@ -5,14 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>สูตรคำนวนปิดสต๊อก Fresh Food (คำนวณวัน)</title>
     <style>
+        /* ตั้งค่า CSS Variables เพื่อให้ง่ายต่อการปรับแต่ง */
+        :root {
+            --primary-color: #00796b; 
+            --accent-color: #ff9800; 
+            --background-color: #eef4f7;
+            --container-bg: white;
+            --readonly-bg: #e0f2f1;
+            --readonly-color: #004d40;
+            --total-bg: #e0f7fa; /* สีพื้นหลังสำหรับ Total */
+            --total-color: #004d40; /* สีตัวอักษรสำหรับ Total */
+        }
+
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            background-color: #eef4f7;
+            background-color: var(--background-color);
             margin: 0; 
             padding: 0; 
         }
         header { 
-            background-color: #00796b;
+            background-color: var(--primary-color);
             color: white; 
             padding: 20px; 
             text-align: center; 
@@ -23,15 +35,27 @@
             max-width: 900px; 
             margin: auto; 
         }
-        .category-group { 
-            background-color: white; 
+        .category-group, #grand-total-group { 
+            background-color: var(--container-bg); 
             padding: 15px; 
             border-radius: 8px; 
             margin-bottom: 20px; 
             box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
-            border-left: 5px solid #00796b;
+            border-left: 5px solid var(--primary-color);
         }
-        
+        /* CSS สำหรับกลุ่ม Grand Total ใหม่ */
+        #grand-total-group {
+            background-color: var(--total-bg);
+            border-left: 5px solid var(--accent-color);
+            padding: 20px 15px;
+            margin-top: 30px;
+        }
+        #grand-total-group .category-title {
+            color: var(--total-color);
+            font-size: 1.3em;
+        }
+
+        /* ... (ส่วน CSS อื่นๆ เหมือนเดิม) ... */
         .header-group {
             display: flex;
             justify-content: space-between;
@@ -51,7 +75,7 @@
         .additional-title {
             font-size: 1.1em;
             font-weight: bold;
-            color: #00796b;
+            color: var(--primary-color);
             margin: 0;
         }
 
@@ -65,14 +89,25 @@
         .input-group label, .input-group input { flex: 1; margin: 0 5px; }
         .input-group label {
             text-align: right; padding-right: 10px; color: #555;
+            flex-basis: 35%; 
         }
         .input-group input { 
             padding: 8px; border: 1px solid #ccc; border-radius: 4px; 
             transition: border-color 0.3s; text-align: right;
+            flex-basis: 60%; 
         }
-        .input-group input:focus { border-color: #00796b; }
+        .input-group input:focus { border-color: var(--primary-color); }
         input[readonly] { 
-            background-color: #e0f2f1; cursor: not-allowed; font-weight: bold; color: #004d40;
+            background-color: var(--readonly-bg); 
+            cursor: not-allowed; 
+            font-weight: bold; 
+            color: var(--readonly-color);
+        }
+        #grand-total-group input[readonly] {
+            background-color: var(--total-bg);
+            font-size: 1.1em;
+            color: var(--total-color);
+            border: 2px solid var(--accent-color);
         }
 
         /* --- MEDIA QUERY สำหรับมือถือ --- */
@@ -93,7 +128,7 @@
             display: block;
             width: 100%;
             padding: 15px;
-            background-color: #ff9800;
+            background-color: var(--accent-color);
             color: white;
             border: none;
             border-radius: 8px;
@@ -111,14 +146,13 @@
             padding: 15px;
             border-radius: 8px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            white-space: pre-wrap; /* รักษารูปแบบวรรคตอนและบรรทัดใหม่ */
-            font-family: monospace; /* ใช้ฟอนต์ที่จัดเรียงตัวอักษรเท่ากัน */
-            display: none; /* ซ่อนไว้ก่อน */
+            white-space: pre-wrap; 
+            font-family: monospace; 
+            display: none; 
             border: 1px solid #ccc;
             margin-bottom: 10px;
             cursor: copy;
         }
-
     </style>
 </head>
 <body>
@@ -127,7 +161,18 @@
     </header>
 
     <div class="container">
-        <!-- กลุ่ม TF Beef -->
+        
+        <div class="category-group" id="global-inputs">
+            <div class="header-group">
+                <div class="category-title">ตั้งค่าการคำนวณ</div>
+                <div class="additional-title">จำนวนวันคำนวณยอดขาย</div>
+            </div>
+            <div class="input-group">
+                <label>จำนวนวันรวม (1-30 วัน):</label>
+                <input type="number" id="total_days" value="7" min="1" oninput="calculateAll();" style="text-align: center;">
+                <label>(ใช้หารยอด Sale รวม)</label>
+            </div>
+        </div>
         <div class="category-group">
             <div class="header-group">
                 <div class="category-title">TF Beef</div>
@@ -135,268 +180,339 @@
             </div>
             
             <div class="input-group">
-                <label>Sale (ยอดรวม):</label>
-                <input type="text" id="tf_sale" value="" oninput="formatNumberInput(this); calculateRow('tf_');">
-                <label>Sale/วัน (คำนวณ):</label>
+                <label>Sale (ยอดรวม **บาท**):</label>
+                <input type="text" inputmode="decimal" id="tf_sale" value="" oninput="calculateRow('tf_');">
+                <label>Sale/วัน (**บาท/วัน**):</label>
                 <input type="text" id="tf_sale_day" readonly>
             </div>
             <div class="input-group">
-                <label>Profit (ใส่ตัวเลข):</label>
-                <input type="text" id="tf_profit" value="" oninput="formatNumberInput(this); calculateRow('tf_');">
-                <label>Margin (ใส่ตัวเลข):</label>
-                <!-- แก้ไขตรงนี้: เปลี่ยนเป็น type="number" -->
-                <input type="number" id="tf_margin" value="" oninput="calculateRow('tf_');">
+                <label>Profit (ใส่ตัวเลข **บาท**):</label>
+                <input type="text" inputmode="decimal" id="tf_profit" value="" oninput="calculateRow('tf_');">
+                <label>Margin (ใส่ตัวเลข **%**):</label>
+                <input type="number" inputmode="decimal" id="tf_margin" value="" oninput="calculateRow('tf_');" step="0.01" min="0" max="100">
             </div>
              <div class="input-group">
-                <label>ยอดยิงทิ้ง (ยอดรวม):</label>
-                <input type="text" id="tf_wasted_value" value="" oninput="formatNumberInput(this); calculateRow('tf_');">
-                <label>Shing (คำนวณ %):</label>
+                <label>ยอดยิงทิ้ง (ยอดรวม **บาท**):</label>
+                <input type="text" inputmode="decimal" id="tf_wasted_value" value="" oninput="calculateRow('tf_');">
+                <label>Shing (**%** คำนวณ):</label>
                 <input type="text" id="tf_wasted_percent" readonly>
             </div>
             <div class="input-group">
-                <label>CloseStock (ยอดรวม):</label>
-                <input type="text" id="tf_closestock_value" value="" oninput="formatNumberInput(this); calculateRow('tf_');">
-                <label>Inventory (คำนวณวัน):</label>
+                <label>CloseStock (ยอดรวม **บาท**):</label>
+                <input type="text" inputmode="decimal" id="tf_closestock_value" value="" oninput="calculateRow('tf_');">
+                <label>Inventory (**วัน** คำนวณ):</label>
                 <input type="text" id="tf_closestock_days" readonly>
             </div>
         </div>
 
-        <!-- กลุ่ม Aust Beef -->
         <div class="category-group">
             <div class="header-group">
                 <div class="category-title">Aust Beef</div>
                 <div class="additional-title">สำหรับ Aust Beef</div>
             </div>
-            
             <div class="input-group">
-                <label>Sale (ยอดรวม):</label>
-                <input type="text" id="aust_sale" value="" oninput="formatNumberInput(this); calculateRow('aust_');">
-                <label>Sale/วัน (คำนวณ):</label>
+                <label>Sale (ยอดรวม **บาท**):</label>
+                <input type="text" inputmode="decimal" id="aust_sale" value="" oninput="calculateRow('aust_');">
+                <label>Sale/วัน (**บาท/วัน**):</label>
                 <input type="text" id="aust_sale_day" readonly>
             </div>
             <div class="input-group">
-                <label>Profit (ใส่ตัวเลข):</label>
-                <input type="text" id="aust_profit" value="" oninput="formatNumberInput(this); calculateRow('aust_');">
-                <label>Margin (ใส่ตัวเลข):</label>
-                <!-- แก้ไขตรงนี้: เปลี่ยนเป็น type="number" -->
-                <input type="number" id="aust_margin" value="" oninput="calculateRow('aust_');">
+                <label>Profit (ใส่ตัวเลข **บาท**):</label>
+                <input type="text" inputmode="decimal" id="aust_profit" value="" oninput="calculateRow('aust_');">
+                <label>Margin (ใส่ตัวเลข **%**):</label>
+                <input type="number" inputmode="decimal" id="aust_margin" value="" oninput="calculateRow('aust_');" step="0.01" min="0" max="100">
             </div>
              <div class="input-group">
-                <label>ยอดยิงทิ้ง (ยอดรวม):</label>
-                <input type="text" id="aust_wasted_value" value="" oninput="formatNumberInput(this); calculateRow('aust_');">
-                <label>Shing (คำนวณ %):</label>
+                <label>ยอดยิงทิ้ง (ยอดรวม **บาท**):</label>
+                <input type="text" inputmode="decimal" id="aust_wasted_value" value="" oninput="calculateRow('aust_');">
+                <label>Shing (**%** คำนวณ):</label>
                 <input type="text" id="aust_wasted_percent" readonly>
             </div>
             <div class="input-group">
-                <label>CloseStock (ยอดรวม):</label>
-                <input type="text" id="aust_closestock_value" value="" oninput="formatNumberInput(this); calculateRow('aust_');">
-                <label>Inventory (คำนวณวัน):</label>
+                <label>CloseStock (ยอดรวม **บาท**):</label>
+                <input type="text" inputmode="decimal" id="aust_closestock_value" value="" oninput="calculateRow('aust_');">
+                <label>Inventory (**วัน** คำนวณ):</label>
                 <input type="text" id="aust_closestock_days" readonly>
             </div>
         </div>
 
-        <!-- กลุ่ม Andaman Local -->
         <div class="category-group">
             <div class="header-group">
                 <div class="category-title">Andaman Local</div>
                 <div class="additional-title">สำหรับ Andaman Local</div> 
             </div>
             <div class="input-group">
-                <label>Sale (ยอดรวม):</label>
-                <input type="text" id="andaman_sale" value="" oninput="formatNumberInput(this); calculateRow('andaman_');">
-                <label>Sale/วัน (คำนวณ):</label>
+                <label>Sale (ยอดรวม **บาท**):</label>
+                <input type="text" inputmode="decimal" id="andaman_sale" value="" oninput="calculateRow('andaman_');">
+                <label>Sale/วัน (**บาท/วัน**):</label>
                 <input type="text" id="andaman_sale_day" readonly>
             </div>
             <div class="input-group">
-                <label>Profit (ใส่ตัวเลข):</label>
-                <input type="text" id="andaman_profit" value="" oninput="formatNumberInput(this); calculateRow('andaman_');">
-                <label>Margin (ใส่ตัวเลข):</label>
-                <!-- แก้ไขตรงนี้: เปลี่ยนเป็น type="number" -->
-                <input type="number" id="andaman_margin" value="" oninput="calculateRow('andaman_');">
+                <label>Profit (ใส่ตัวเลข **บาท**):</label>
+                <input type="text" inputmode="decimal" id="andaman_profit" value="" oninput="calculateRow('andaman_');">
+                <label>Margin (ใส่ตัวเลข **%**):</label>
+                <input type="number" inputmode="decimal" id="andaman_margin" value="" oninput="calculateRow('andaman_');" step="0.01" min="0" max="100">
             </div>
              <div class="input-group">
-                <label>ยอดยิงทิ้ง (ยอดรวม):</label>
-                <input type="text" id="andaman_wasted_value" value="" oninput="formatNumberInput(this); calculateRow('andaman_');">
-                <label>Shing (คำนวณ %):</label>
+                <label>ยอดยิงทิ้ง (ยอดรวม **บาท**):</label>
+                <input type="text" inputmode="decimal" id="andaman_wasted_value" value="" oninput="calculateRow('andaman_');">
+                <label>Shing (**%** คำนวณ):</label>
                 <input type="text" id="andaman_wasted_percent" readonly>
             </div>
             <div class="input-group">
-                <label>CloseStock (ยอดรวม):</label>
-                <input type="text" id="andaman_closestock_value" value="" oninput="formatNumberInput(this); calculateRow('andaman_');">
-                <label>Inventory (คำนวณวัน):</label>
+                <label>CloseStock (ยอดรวม **บาท**):</label>
+                <input type="text" inputmode="decimal" id="andaman_closestock_value" value="" oninput="calculateRow('andaman_');">
+                <label>Inventory (**วัน** คำนวณ):</label>
                 <input type="text" id="andaman_closestock_days" readonly>
             </div>
         </div>
         
-        <!-- กลุ่ม Imp. Seafood -->
         <div class="category-group">
             <div class="header-group">
                 <div class="category-title">Imp. Seafood</div>
                 <div class="additional-title">สำหรับ Imp. Seafood</div> 
             </div>
             <div class="input-group">
-                <label>Sale (ยอดรวม):</label>
-                <input type="text" id="impseafood_sale" value="" oninput="formatNumberInput(this); calculateRow('impseafood_');">
-                <label>Sale/วัน (คำนวณ):</label>
+                <label>Sale (ยอดรวม **บาท**):</label>
+                <input type="text" inputmode="decimal" id="impseafood_sale" value="" oninput="calculateRow('impseafood_');">
+                <label>Sale/วัน (**บาท/วัน**):</label>
                 <input type="text" id="impseafood_sale_day" readonly>
             </div>
             <div class="input-group">
-                <label>Profit (ใส่ตัวเลข):</label>
-                <input type="text" id="impseafood_profit" value="" oninput="formatNumberInput(this); calculateRow('impseafood_');">
-                <label>Margin (ใส่ตัวเลข):</label>
-                <!-- แก้ไขตรงนี้: เปลี่ยนเป็น type="number" -->
-                <input type="number" id="impseafood_margin" value="" oninput="calculateRow('impseafood_');">
+                <label>Profit (ใส่ตัวเลข **บาท**):</label>
+                <input type="text" inputmode="decimal" id="impseafood_profit" value="" oninput="calculateRow('impseafood_');">
+                <label>Margin (ใส่ตัวเลข **%**):</label>
+                <input type="number" inputmode="decimal" id="impseafood_margin" value="" oninput="calculateRow('impseafood_');" step="0.01" min="0" max="100">
             </div>
              <div class="input-group">
-                <label>ยอดยิงทิ้ง (ยอดรวม):</label>
-                <input type="text" id="impseafood_wasted_value" value="" oninput="formatNumberInput(this); calculateRow('impseafood_');">
-                <label>Shing (คำนวณ %):</label>
+                <label>ยอดยิงทิ้ง (ยอดรวม **บาท**):</label>
+                <input type="text" inputmode="decimal" id="impseafood_wasted_value" value="" oninput="calculateRow('impseafood_');">
+                <label>Shing (**%** คำนวณ):</label>
                 <input type="text" id="impseafood_wasted_percent" readonly>
             </div>
             <div class="input-group">
-                <label>CloseStock (ยอดรวม):</label>
-                <input type="text" id="impseafood_closestock_value" value="" oninput="formatNumberInput(this); calculateRow('impseafood_');">
-                <label>Inventory (คำนวณวัน):</label>
+                <label>CloseStock (ยอดรวม **บาท**):</label>
+                <input type="text" inputmode="decimal" id="impseafood_closestock_value" value="" oninput="calculateRow('impseafood_');">
+                <label>Inventory (**วัน** คำนวณ):</label>
                 <input type="text" id="impseafood_closestock_days" readonly>
             </div>
         </div>
 
-        <!-- กลุ่ม Delica imp. Counter -->
         <div class="category-group">
             <div class="header-group">
                 <div class="category-title">Delica imp. Counter</div>
                 <div class="additional-title">สำหรับ Delica imp. Counter</div> 
             </div>
             <div class="input-group">
-                <label>Sale (ยอดรวม):</label>
-                <input type="text" id="delicaimp_sale" value="" oninput="formatNumberInput(this); calculateRow('delicaimp_');">
-                <label>Sale/วัน (คำนวณ):</label>
+                <label>Sale (ยอดรวม **บาท**):</label>
+                <input type="text" inputmode="decimal" id="delicaimp_sale" value="" oninput="calculateRow('delicaimp_');">
+                <label>Sale/วัน (**บาท/วัน**):</label>
                 <input type="text" id="delicaimp_sale_day" readonly>
             </div>
             <div class="input-group">
-                <label>Profit (ใส่ตัวเลข):</label>
-                <input type="text" id="delicaimp_profit" value="" oninput="formatNumberInput(this); calculateRow('delicaimp_');">
-                <label>Margin (ใส่ตัวเลข):</label>
-                <!-- แก้ไขตรงนี้: เปลี่ยนเป็น type="number" -->
-                <input type="number" id="delicaimp_margin" value="" oninput="calculateRow('delicaimp_');">
+                <label>Profit (ใส่ตัวเลข **บาท**):</label>
+                <input type="text" inputmode="decimal" id="delicaimp_profit" value="" oninput="calculateRow('delicaimp_');">
+                <label>Margin (ใส่ตัวเลข **%**):</label>
+                <input type="number" inputmode="decimal" id="delicaimp_margin" value="" oninput="calculateRow('delicaimp_');" step="0.01" min="0" max="100">
             </div>
              <div class="input-group">
-                <label>ยอดยิงทิ้ง (ยอดรวม):</label>
-                <input type="text" id="delicaimp_wasted_value" value="" oninput="formatNumberInput(this); calculateRow('delicaimp_');">
-                <label>Shing (คำนวณ %):</label>
+                <label>ยอดยิงทิ้ง (ยอดรวม **บาท**):</label>
+                <input type="text" inputmode="decimal" id="delicaimp_wasted_value" value="" oninput="calculateRow('delicaimp_');">
+                <label>Shing (**%** คำนวณ):</label>
                 <input type="text" id="delicaimp_wasted_percent" readonly>
             </div>
             <div class="input-group">
-                <label>CloseStock (ยอดรวม):</label>
-                <input type="text" id="delicaimp_closestock_value" value="" oninput="formatNumberInput(this); calculateRow('delicaimp_');">
-                <label>Inventory (คำนวณวัน):</label>
+                <label>CloseStock (ยอดรวม **บาท**):</label>
+                <input type="text" inputmode="decimal" id="delicaimp_closestock_value" value="" oninput="calculateRow('delicaimp_');">
+                <label>Inventory (**วัน** คำนวณ):</label>
                 <input type="text" id="delicaimp_closestock_days" readonly>
             </div>
         </div>
-
-        <!-- กลุ่ม Delica Local -->
+        
         <div class="category-group">
             <div class="header-group">
                 <div class="category-title">Delica Local</div>
                 <div class="additional-title">สำหรับ Delica Local</div> 
             </div>
             <div class="input-group">
-                <label>Sale (ยอดรวม):</label>
-                <input type="text" id="delicalocal_sale" value="" oninput="formatNumberInput(this); calculateRow('delicalocal_');">
-                <label>Sale/วัน (คำนวณ):</label>
+                <label>Sale (ยอดรวม **บาท**):</label>
+                <input type="text" inputmode="decimal" id="delicalocal_sale" value="" oninput="calculateRow('delicalocal_');">
+                <label>Sale/วัน (**บาท/วัน**):</label>
                 <input type="text" id="delicalocal_sale_day" readonly>
             </div>
             <div class="input-group">
-                <label>Profit (ใส่ตัวเลข):</label>
-                <input type="text" id="delicalocal_profit" value="" oninput="formatNumberInput(this); calculateRow('delicalocal_');">
-                <label>Margin (ใส่ตัวเลข):</label>
-                <!-- แก้ไขตรงนี้: เปลี่ยนเป็น type="number" -->
-                <input type="number" id="delicalocal_margin" value="" oninput="calculateRow('delicalocal_');">
+                <label>Profit (ใส่ตัวเลข **บาท**):</label>
+                <input type="text" inputmode="decimal" id="delicalocal_profit" value="" oninput="calculateRow('delicalocal_');">
+                <label>Margin (ใส่ตัวเลข **%**):</label>
+                <input type="number" inputmode="decimal" id="delicalocal_margin" value="" oninput="calculateRow('delicalocal_');" step="0.01" min="0" max="100">
             </div>
              <div class="input-group">
-                <label>ยอดยิงทิ้ง (ยอดรวม):</label>
-                <input type="text" id="delicalocal_wasted_value" value="" oninput="formatNumberInput(this); calculateRow('delicalocal_');">
-                <label>Shing (คำนวณ %):</label>
+                <label>ยอดยิงทิ้ง (ยอดรวม **บาท**):</label>
+                <input type="text" inputmode="decimal" id="delicalocal_wasted_value" value="" oninput="calculateRow('delicalocal_');">
+                <label>Shing (**%** คำนวณ):</label>
                 <input type="text" id="delicalocal_wasted_percent" readonly>
             </div>
             <div class="input-group">
-                <label>CloseStock (ยอดรวม):</label>
-                <input type="text" id="delicalocal_closestock_value" value="" oninput="formatNumberInput(this); calculateRow('delicalocal_');">
-                <label>Inventory (คำนวณวัน):</label>
+                <label>CloseStock (ยอดรวม **บาท**):</label>
+                <input type="text" inputmode="decimal" id="delicalocal_closestock_value" value="" oninput="calculateRow('delicalocal_');">
+                <label>Inventory (**วัน** คำนวณ):</label>
                 <input type="text" id="delicalocal_closestock_days" readonly>
             </div>
         </div>
 
-        <!-- ปุ่มสร้างและคัดลอก Report -->
+        <div class="category-group" id="grand-total-group">
+            <div class="header-group">
+                <div class="category-title">⭐ ยอดรวมทั้งหมด (GRAND TOTAL)</div>
+                <div class="additional-title">คำนวณแบบ Real-time</div>
+            </div>
+            <div class="input-group">
+                <label>Total Sale (ยอดรวม **บาท**):</label>
+                <input type="text" id="total_sale" readonly>
+                <label>Total Profit (กำไร/ขาดทุนรวม **บาท**):</label>
+                <input type="text" id="total_profit" readonly>
+            </div>
+            <div class="input-group">
+                <label>Total Wasted (ยิงทิ้งรวม **บาท**):</label>
+                <input type="text" id="total_wasted_value" readonly>
+                <label>Overall Shing (**%** คำนวณ):</label>
+                <input type="text" id="total_wasted_percent" readonly>
+            </div>
+            <div class="input-group">
+                <label>Total CloseStock (สต๊อกรวม **บาท**):</label>
+                <input type="text" id="total_closestock_value" readonly>
+                <label>Average Inventory (**วัน** คำนวณ):</label>
+                <input type="text" id="total_closestock_days" readonly>
+            </div>
+        </div>
         <button class="summary-button" onclick="copyReport()">สร้างและคัดลอก Report</button>
 
-        <!-- พื้นที่แสดงผลสรุปแบบข้อความ (ซ่อนไว้) -->
         <div id="report-output" onclick="copyReport()">
-            <!-- เนื้อหาจะถูกสร้างโดย JavaScript -->
-        </div>
+            </div>
 
     </div>
 
     <script>
-        // ฟังก์ชันสำหรับใส่ comma ใน input ตัวเลขทั่วไป
+        const CATEGORIES = ['tf_', 'aust_', 'andaman_', 'impseafood_', 'delicaimp_', 'delicalocal_'];
+
+        // ฟังก์ชันช่วยดึงค่าตัวเลขจาก ID (ลบคอมม่าออก)
+        const getNum = (id) => {
+            const inputEl = document.getElementById(id);
+            if (!inputEl) return 0; 
+            if (inputEl.type === 'number') {
+                return parseFloat(inputEl.value) || 0;
+            }
+            return parseFloat(inputEl.value.replace(/,/g, '')) || 0;
+        };
+        
+        // 1. ฟังก์ชันดึงค่าจำนวนวัน
+        const getTotalDays = () => {
+            const daysEl = document.getElementById('total_days');
+            const days = parseFloat(daysEl ? daysEl.value : '7') || 7; 
+            return days > 0 ? days : 1; 
+        };
+
+        // 2. ฟังก์ชันสำหรับใส่ comma (ใช้เมื่อผู้ใช้ออกจากช่อง input - onblur)
         function formatNumberInput(input) {
             let value = input.value.replace(/,/g, '');
             if (!isNaN(value) && value !== '') {
-                // ใช้ onblur แทน oninput เพื่อให้พิมพ์จุดได้ลื่นไหลก่อน
-                input.value = parseFloat(value).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 10 });
+                // แสดงทศนิยม 2 ตำแหน่งเสมอสำหรับค่าเงิน
+                input.value = parseFloat(value).toLocaleString('en-US', { 
+                    minimumFractionDigits: 2, 
+                    maximumFractionDigits: 2
+                });
             } else if (value === '') {
-                 input.value = '';
+                input.value = '';
             }
         }
 
         // เพิ่ม Event Listener สำหรับการจัด format เมื่อออกจากช่อง input
-        document.querySelectorAll('input[type="text"]').forEach(input => {
-            input.addEventListener('blur', function() {
-                formatNumberInput(this);
-            });
+        document.querySelectorAll('input[type="text"][id]').forEach(input => {
+            if (!input.readOnly && (input.id.includes('_sale') || input.id.includes('_profit') || input.id.includes('_wasted_value') || input.id.includes('_closestock_value'))) {
+                input.addEventListener('blur', function() {
+                    formatNumberInput(this);
+                });
+            }
         });
 
 
-        // ฟังก์ชันคำนวณหลักต่อแถว
+        // 3. ฟังก์ชันคำนวณหลักต่อแถว (เรียกใช้ GrandTotal หลังคำนวณแต่ละแถว)
         function calculateRow(prefix) {
-            // ใช้ฟังก์ชันเสริมเพื่อรับค่าตัวเลขที่ถูกต้อง
-            // สำหรับช่อง type="text" ต้องลบ comma ออก, สำหรับ type="number" ไม่ต้อง
-            const getNum = (id) => {
-                const inputEl = document.getElementById(id);
-                if (inputEl.type === 'number') {
-                    return parseFloat(inputEl.value) || 0;
-                }
-                return parseFloat(inputEl.value.replace(/,/g, '')) || 0;
-            };
-
             const sale = getNum(prefix + 'sale');
             const wastedValue = getNum(prefix + 'wasted_value');
             const closestockValue = getNum(prefix + 'closestock_value');
-            const margin = getNum(prefix + 'margin'); // ดึงค่า Margin
 
-            // ตัวแปรสำหรับแสดงผล
+            const totalDays = getTotalDays(); 
+            
+            const salePerDay = sale / totalDays; 
+            const wastedPercent = (sale > 0) ? (wastedValue / sale) * 100 : 0;
+            const closestockDays = (salePerDay > 0) ? closestockValue / salePerDay : 0;
+
+            const formatNum = (num) => isFinite(num) ? num.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '0.00';
+            const formatPercent = (num) => isFinite(num) && num !== 0 ? num.toFixed(2) + '%' : '0.00%';
+            const formatDays = (num) => isFinite(num) && num > 0 ? num.toFixed(2) + ' วัน' : '0.00 วัน'; 
+
             const saleDayInput = document.getElementById(prefix + 'sale_day');
             const wastedPercentInput = document.getElementById(prefix + 'wasted_percent');
             const closestockDaysInput = document.getElementById(prefix + 'closestock_days');
 
-            // คำนวณ
-            const salePerDay = sale / 7;
-            const wastedPercent = (sale > 0) ? (wastedValue / sale) * 100 : 0;
-            const closestockDays = (salePerDay > 0) ? closestockValue / salePerDay : 0;
+            if (saleDayInput) saleDayInput.value = formatNum(salePerDay);
+            if (wastedPercentInput) wastedPercentInput.value = formatPercent(wastedPercent);
+            if (closestockDaysInput) closestockDaysInput.value = formatDays(closestockDays);
 
-            // แสดงผล
-            const formatNum = (num) => isFinite(num) && num !== 0 ? num.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '';
-            const formatPercent = (num) => isFinite(num) && num !== 0 ? num.toFixed(2) + '%' : '';
-            const formatDays = (num) => isFinite(num) && num > 0 ? num.toFixed(2) + ' วัน' : '';
+            // *** เรียกคำนวณยอดรวมทันทีหลังจบแต่ละแถว ***
+            calculateGrandTotal();
+        }
+        
+        // 4. ฟังก์ชันคำนวณยอดรวมทั้งหมด (Grand Total) - อัปเดตทันที
+        function calculateGrandTotal() {
+            let totalSale = 0;
+            let totalProfit = 0;
+            let totalWastedValue = 0;
+            let totalCloseStockValue = 0;
+            const totalDays = getTotalDays();
 
-            saleDayInput.value = formatNum(salePerDay);
-            wastedPercentInput.value = formatPercent(wastedPercent);
-            closestockDaysInput.value = formatDays(closestockDays);
-            // ไม่ต้องทำอะไรกับ margin input เพราะเป็น type="number" จัดการเอง
+            // รวมยอดจากทุกหมวดหมู่
+            CATEGORIES.forEach(prefix => {
+                totalSale += getNum(prefix + 'sale');
+                totalProfit += getNum(prefix + 'profit');
+                totalWastedValue += getNum(prefix + 'wasted_value');
+                totalCloseStockValue += getNum(prefix + 'closestock_value');
+            });
+
+            // คำนวณค่ารวมที่เหลือ
+            const totalSalePerDay = totalSale / totalDays;
+            const overallWastedPercent = (totalSale > 0) ? (totalWastedValue / totalSale) * 100 : 0;
+            const averageClosestockDays = (totalSalePerDay > 0) ? totalCloseStockValue / totalSalePerDay : 0;
+
+            // ฟังก์ชันจัดรูปแบบผลลัพธ์ (ใช้เหมือนเดิม)
+            const formatNum = (num) => isFinite(num) ? num.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '0.00';
+            const formatPercent = (num) => isFinite(num) && num !== 0 ? num.toFixed(2) + '%' : '0.00%';
+            const formatDays = (num) => isFinite(num) && num > 0 ? num.toFixed(2) + ' วัน' : '0.00 วัน';
+
+            // แสดงผลลัพธ์ในช่อง Grand Total
+            document.getElementById('total_sale').value = formatNum(totalSale);
+            document.getElementById('total_profit').value = formatNum(totalProfit);
+            document.getElementById('total_wasted_value').value = formatNum(totalWastedValue);
+            document.getElementById('total_closestock_value').value = formatNum(totalCloseStockValue);
+
+            document.getElementById('total_wasted_percent').value = formatPercent(overallWastedPercent);
+            document.getElementById('total_closestock_days').value = formatDays(averageClosestockDays);
         }
 
-        // ฟังก์ชันสำหรับสร้างและคัดลอก Report ทั้งหมด
+
+        // 5. ฟังก์ชันเรียกคำนวณทั้งหมดเมื่อหน้าเว็บโหลด (เรียกทั้ง Row และ Grand Total)
+        function calculateAll() {
+            CATEGORIES.forEach(prefix => calculateRow(prefix));
+            calculateGrandTotal();
+        }
+        
+        document.addEventListener('DOMContentLoaded', calculateAll);
+
+
+        // 6. ฟังก์ชันสำหรับสร้างและคัดลอก Report ทั้งหมด
         function copyReport() {
+            calculateAll(); // คำนวณทุกอย่างอีกครั้งก่อนสร้างรายงาน
+
             const prefixes = [
                 {id: 'tf_', title: 'TF Beef'},
                 {id: 'aust_', title: 'Aust Beef'},
@@ -411,20 +527,15 @@
 
             if (!location || !date) return;
 
-            let reportText = `แจ้งยอดปิดสต๊อกสาขา${location}\nวันที่ ${date}\n\n`;
+            const totalDays = getTotalDays();
+            let reportText = `แจ้งยอดปิดสต๊อกสาขา${location}\nวันที่ ${date}\nจำนวนวันคำนวณ: ${totalDays} วัน\n\n`; 
 
-            const getNum = (id) => {
-                const inputEl = document.getElementById(id);
-                if (inputEl.type === 'number') {
-                    return parseFloat(inputEl.value) || 0;
-                }
-                return parseFloat(inputEl.value.replace(/,/g, '')) || 0;
-            };
-            const formatNum = (num) => isFinite(num) && num !== 0 ? num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00';
-            const formatPercent = (num) => isFinite(num) && num !== 0 ? num.toFixed(2) : '0.00';
+            const formatNum = (num) => isFinite(num) ? num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00';
+            const formatPercent = (num) => isFinite(num) ? num.toFixed(2) : '0.00';
             const formatDays = (num) => isFinite(num) && num > 0 ? num.toFixed(2) : '0.00';
 
 
+            // --- ส่วนรายงานรายหมวด ---
             prefixes.forEach(item => {
                 const prefix = item.id;
                 const sale = getNum(prefix + 'sale');
@@ -432,21 +543,39 @@
                 const margin = getNum(prefix + 'margin');
                 const wastedValue = getNum(prefix + 'wasted_value');
                 
-                const salePerDay = sale / 7;
+                const salePerDay = sale / totalDays; 
                 const wastedPercent = (sale > 0) ? (wastedValue / sale) * 100 : 0;
                 const closestockValue = getNum(prefix + 'closestock_value');
                 const closestockDays = (salePerDay > 0) ? closestockValue / salePerDay : 0;
 
-
-                reportText += `${item.title}\n`;
+                reportText += `***${item.title}***\n`; 
                 reportText += `Sale ${formatNum(sale)}\n`;
-                reportText += `Sale/ต่อวัน ${formatNum(salePerDay)}\n`;
+                reportText += `Sale/วัน ${formatNum(salePerDay)}\n`;
                 reportText += `Profit ${formatNum(profit)}\n`;
-                reportText += `Margin ${formatPercent(margin)}%\n`; // ยังคงใส่ % ตอนสรุปรายงาน
+                reportText += `Margin ${formatPercent(margin)}%\n`;
                 reportText += `Shing ${formatPercent(wastedPercent)}%\n`;
                 reportText += `Inventory ${formatDays(closestockDays)} วัน\n\n`;
             });
+            
+            // --- ส่วนรายงานยอดรวม ---
+            const totalSale = getNum('total_sale');
+            const totalProfit = getNum('total_profit');
+            const totalWastedValue = getNum('total_wasted_value');
+            const overallWastedPercent = (totalSale > 0) ? (totalWastedValue / totalSale) * 100 : 0;
+            const totalSalePerDay = totalSale / totalDays;
+            const totalCloseStockValue = getNum('total_closestock_value');
+            const averageClosestockDays = (totalSalePerDay > 0) ? totalCloseStockValue / totalSalePerDay : 0;
 
+
+            reportText += `==============================\n`;
+            reportText += `⭐ ยอดรวมทั้งหมด (GRAND TOTAL) ⭐\n`;
+            reportText += `Total Sale ${formatNum(totalSale)}\n`;
+            reportText += `Total Profit ${formatNum(totalProfit)}\n`;
+            reportText += `Total Wasted ${formatNum(totalWastedValue)}\n`;
+            reportText += `Overall Shing ${formatPercent(overallWastedPercent)}%\n`;
+            reportText += `Total CloseStock ${formatNum(totalCloseStockValue)}\n`;
+            reportText += `Average Inventory ${formatDays(averageClosestockDays)} วัน\n`;
+            reportText += `==============================\n\n`;
             reportText += `แจ้งเพื่อทราบ\nขอบคุณครับ`;
 
             const outputEl = document.getElementById('report-output');
