@@ -13,8 +13,8 @@
             --container-bg: white;
             --readonly-bg: #e0f2f1;
             --readonly-color: #004d40;
-            --total-bg: #e0f7fa; /* สีพื้นหลังสำหรับ Total */
-            --total-color: #004d40; /* สีตัวอักษรสำหรับ Total */
+            --total-bg: #e0f7fa; 
+            --total-color: #004d40; 
         }
 
         body { 
@@ -415,7 +415,6 @@
         function formatNumberInput(input) {
             let value = input.value.replace(/,/g, '');
             if (!isNaN(value) && value !== '') {
-                // แสดงทศนิยม 2 ตำแหน่งเสมอสำหรับค่าเงิน
                 input.value = parseFloat(value).toLocaleString('en-US', { 
                     minimumFractionDigits: 2, 
                     maximumFractionDigits: 2
@@ -425,7 +424,6 @@
             }
         }
 
-        // เพิ่ม Event Listener สำหรับการจัด format เมื่อออกจากช่อง input
         document.querySelectorAll('input[type="text"][id]').forEach(input => {
             if (!input.readOnly && (input.id.includes('_sale') || input.id.includes('_profit') || input.id.includes('_wasted_value') || input.id.includes('_closestock_value'))) {
                 input.addEventListener('blur', function() {
@@ -459,11 +457,10 @@
             if (wastedPercentInput) wastedPercentInput.value = formatPercent(wastedPercent);
             if (closestockDaysInput) closestockDaysInput.value = formatDays(closestockDays);
 
-            // *** เรียกคำนวณยอดรวมทันทีหลังจบแต่ละแถว ***
             calculateGrandTotal();
         }
         
-        // 4. ฟังก์ชันคำนวณยอดรวมทั้งหมด (Grand Total) - อัปเดตทันที
+        // 4. ฟังก์ชันคำนวณยอดรวมทั้งหมด (Grand Total)
         function calculateGrandTotal() {
             let totalSale = 0;
             let totalProfit = 0;
@@ -471,7 +468,6 @@
             let totalCloseStockValue = 0;
             const totalDays = getTotalDays();
 
-            // รวมยอดจากทุกหมวดหมู่
             CATEGORIES.forEach(prefix => {
                 totalSale += getNum(prefix + 'sale');
                 totalProfit += getNum(prefix + 'profit');
@@ -479,17 +475,14 @@
                 totalCloseStockValue += getNum(prefix + 'closestock_value');
             });
 
-            // คำนวณค่ารวมที่เหลือ
             const totalSalePerDay = totalSale / totalDays;
             const overallWastedPercent = (totalSale > 0) ? (totalWastedValue / totalSale) * 100 : 0;
             const averageClosestockDays = (totalSalePerDay > 0) ? totalCloseStockValue / totalSalePerDay : 0;
 
-            // ฟังก์ชันจัดรูปแบบผลลัพธ์ (ใช้เหมือนเดิม)
             const formatNum = (num) => isFinite(num) ? num.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '0.00';
             const formatPercent = (num) => isFinite(num) && num !== 0 ? num.toFixed(2) + '%' : '0.00%';
             const formatDays = (num) => isFinite(num) && num > 0 ? num.toFixed(2) + ' วัน' : '0.00 วัน';
 
-            // แสดงผลลัพธ์ในช่อง Grand Total
             document.getElementById('total_sale').value = formatNum(totalSale);
             document.getElementById('total_profit').value = formatNum(totalProfit);
             document.getElementById('total_wasted_value').value = formatNum(totalWastedValue);
@@ -500,7 +493,7 @@
         }
 
 
-        // 5. ฟังก์ชันเรียกคำนวณทั้งหมดเมื่อหน้าเว็บโหลด (เรียกทั้ง Row และ Grand Total)
+        // 5. ฟังก์ชันเรียกคำนวณทั้งหมดเมื่อหน้าเว็บโหลด
         function calculateAll() {
             CATEGORIES.forEach(prefix => calculateRow(prefix));
             calculateGrandTotal();
@@ -509,9 +502,9 @@
         document.addEventListener('DOMContentLoaded', calculateAll);
 
 
-        // 6. ฟังก์ชันสำหรับสร้างและคัดลอก Report ทั้งหมด
+        // 6. ฟังก์ชันสำหรับสร้างและคัดลอก Report ทั้งหมด (ปรับปรุงตามคำขอ)
         function copyReport() {
-            calculateAll(); // คำนวณทุกอย่างอีกครั้งก่อนสร้างรายงาน
+            calculateAll(); 
 
             const prefixes = [
                 {id: 'tf_', title: 'TF Beef'},
@@ -527,9 +520,9 @@
 
             if (!location || !date) return;
 
-            const totalDays = getTotalDays();
-            let reportText = `แจ้งยอดปิดสต๊อกสาขา${location}\nวันที่ ${date}\nจำนวนวันคำนวณ: ${totalDays} วัน\n\n`; 
+            let reportText = `แจ้งยอดปิดสต๊อกสาขา${location}\nวันที่ ${date}\n\n`; // ลบจำนวนวันออก
 
+            const totalDays = getTotalDays(); // ยังจำเป็นต้องใช้ในการคำนวณ Report 
             const formatNum = (num) => isFinite(num) ? num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00';
             const formatPercent = (num) => isFinite(num) ? num.toFixed(2) : '0.00';
             const formatDays = (num) => isFinite(num) && num > 0 ? num.toFixed(2) : '0.00';
@@ -557,7 +550,7 @@
                 reportText += `Inventory ${formatDays(closestockDays)} วัน\n\n`;
             });
             
-            // --- ส่วนรายงานยอดรวม ---
+            // --- ส่วนรายงานยอดรวม (ปรับปรุงตามคำขอ) ---
             const totalSale = getNum('total_sale');
             const totalProfit = getNum('total_profit');
             const totalWastedValue = getNum('total_wasted_value');
@@ -567,15 +560,15 @@
             const averageClosestockDays = (totalSalePerDay > 0) ? totalCloseStockValue / totalSalePerDay : 0;
 
 
-            reportText += `==============================\n`;
-            reportText += `⭐ ยอดรวมทั้งหมด (GRAND TOTAL) ⭐\n`;
+            // ลบเส้นคั่นและหัวข้อทั้งหมดออก และใช้คำว่า "รวม" แทน
+            reportText += `***รวมทุกหมวดหมู่***\n`;
             reportText += `Total Sale ${formatNum(totalSale)}\n`;
             reportText += `Total Profit ${formatNum(totalProfit)}\n`;
             reportText += `Total Wasted ${formatNum(totalWastedValue)}\n`;
             reportText += `Overall Shing ${formatPercent(overallWastedPercent)}%\n`;
             reportText += `Total CloseStock ${formatNum(totalCloseStockValue)}\n`;
-            reportText += `Average Inventory ${formatDays(averageClosestockDays)} วัน\n`;
-            reportText += `==============================\n\n`;
+            reportText += `Average Inventory ${formatDays(averageClosestockDays)} วัน\n\n`;
+
             reportText += `แจ้งเพื่อทราบ\nขอบคุณครับ`;
 
             const outputEl = document.getElementById('report-output');
