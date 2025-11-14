@@ -103,6 +103,18 @@
             font-weight: bold; 
             color: var(--readonly-color);
         }
+        
+        /* ช่อง Margin (input[type="number"]) จะมีพื้นหลังและสีปกติ */
+        input[type="number"][id*="_margin"] {
+            background-color: white; 
+            cursor: auto; 
+            font-weight: normal; 
+            color: initial;
+            /* อนุญาตให้ใส่ทศนิยมได้ */
+            appearance: textfield; /* สำหรับ Chrome/Safari */
+            -moz-appearance: textfield; /* สำหรับ Firefox */
+        }
+        
         #grand-total-group input[readonly] {
             background-color: var(--total-bg);
             font-size: 1.1em;
@@ -155,7 +167,7 @@
         }
     </style>
 </head>
-<body>
+<body onload="calculateAll()">
     <header>
         <h1>สูตรคำนวนปิดสต๊อก Fresh Food</h1>
     </header>
@@ -188,8 +200,8 @@
             <div class="input-group">
                 <label>Profit (ใส่ตัวเลข **บาท**):</label>
                 <input type="text" inputmode="decimal" id="tf_profit" value="" oninput="calculateRow('tf_');">
-                <label>Margin (ใส่ตัวเลข **%**):</label>
-                <input type="number" inputmode="decimal" id="tf_margin" value="" oninput="calculateRow('tf_');" step="0.01" min="0" max="100">
+                <label>Margin (**%** ใส่เอง):</label>
+                <input type="number" step="0.01" id="tf_margin" value="" oninput="calculateGrandTotal();"> 
             </div>
              <div class="input-group">
                 <label>ยอดยิงทิ้ง (ยอดรวม **บาท**):</label>
@@ -219,8 +231,8 @@
             <div class="input-group">
                 <label>Profit (ใส่ตัวเลข **บาท**):</label>
                 <input type="text" inputmode="decimal" id="aust_profit" value="" oninput="calculateRow('aust_');">
-                <label>Margin (ใส่ตัวเลข **%**):</label>
-                <input type="number" inputmode="decimal" id="aust_margin" value="" oninput="calculateRow('aust_');" step="0.01" min="0" max="100">
+                <label>Margin (**%** ใส่เอง):</label>
+                <input type="number" step="0.01" id="aust_margin" value="" oninput="calculateGrandTotal();">
             </div>
              <div class="input-group">
                 <label>ยอดยิงทิ้ง (ยอดรวม **บาท**):</label>
@@ -250,8 +262,8 @@
             <div class="input-group">
                 <label>Profit (ใส่ตัวเลข **บาท**):</label>
                 <input type="text" inputmode="decimal" id="andaman_profit" value="" oninput="calculateRow('andaman_');">
-                <label>Margin (ใส่ตัวเลข **%**):</label>
-                <input type="number" inputmode="decimal" id="andaman_margin" value="" oninput="calculateRow('andaman_');" step="0.01" min="0" max="100">
+                <label>Margin (**%** ใส่เอง):</label>
+                <input type="number" step="0.01" id="andaman_margin" value="" oninput="calculateGrandTotal();">
             </div>
              <div class="input-group">
                 <label>ยอดยิงทิ้ง (ยอดรวม **บาท**):</label>
@@ -281,8 +293,8 @@
             <div class="input-group">
                 <label>Profit (ใส่ตัวเลข **บาท**):</label>
                 <input type="text" inputmode="decimal" id="impseafood_profit" value="" oninput="calculateRow('impseafood_');">
-                <label>Margin (ใส่ตัวเลข **%**):</label>
-                <input type="number" inputmode="decimal" id="impseafood_margin" value="" oninput="calculateRow('impseafood_');" step="0.01" min="0" max="100">
+                <label>Margin (**%** ใส่เอง):</label>
+                <input type="number" step="0.01" id="impseafood_margin" value="" oninput="calculateGrandTotal();">
             </div>
              <div class="input-group">
                 <label>ยอดยิงทิ้ง (ยอดรวม **บาท**):</label>
@@ -312,8 +324,8 @@
             <div class="input-group">
                 <label>Profit (ใส่ตัวเลข **บาท**):</label>
                 <input type="text" inputmode="decimal" id="delicaimp_profit" value="" oninput="calculateRow('delicaimp_');">
-                <label>Margin (ใส่ตัวเลข **%**):</label>
-                <input type="number" inputmode="decimal" id="delicaimp_margin" value="" oninput="calculateRow('delicaimp_');" step="0.01" min="0" max="100">
+                <label>Margin (**%** ใส่เอง):</label>
+                <input type="number" step="0.01" id="delicaimp_margin" value="" oninput="calculateGrandTotal();">
             </div>
              <div class="input-group">
                 <label>ยอดยิงทิ้ง (ยอดรวม **บาท**):</label>
@@ -343,8 +355,8 @@
             <div class="input-group">
                 <label>Profit (ใส่ตัวเลข **บาท**):</label>
                 <input type="text" inputmode="decimal" id="delicalocal_profit" value="" oninput="calculateRow('delicalocal_');">
-                <label>Margin (ใส่ตัวเลข **%**):</label>
-                <input type="number" inputmode="decimal" id="delicalocal_margin" value="" oninput="calculateRow('delicalocal_');" step="0.01" min="0" max="100">
+                <label>Margin (**%** ใส่เอง):</label>
+                <input type="number" step="0.01" id="delicalocal_margin" value="" oninput="calculateGrandTotal();">
             </div>
              <div class="input-group">
                 <label>ยอดยิงทิ้ง (ยอดรวม **บาท**):</label>
@@ -398,10 +410,13 @@
         const getNum = (id) => {
             const inputEl = document.getElementById(id);
             if (!inputEl) return 0; 
-            if (inputEl.type === 'number') {
-                return parseFloat(inputEl.value) || 0;
+            
+            // สำหรับช่อง Sale, Profit, Wasted, Closestock (input type="text")
+            if (inputEl.type === 'text') {
+                return parseFloat(inputEl.value.replace(/,/g, '')) || 0;
             }
-            return parseFloat(inputEl.value.replace(/,/g, '')) || 0;
+            // สำหรับช่อง Margin (input type="number") และ Readonly อื่นๆ
+            return parseFloat(inputEl.value.replace(/%| วัน/g, '')) || 0; 
         };
         
         // 1. ฟังก์ชันดึงค่าจำนวนวัน
@@ -415,17 +430,21 @@
         function formatNumberInput(input) {
             let value = input.value.replace(/,/g, '');
             if (!isNaN(value) && value !== '') {
+                // จัดรูปแบบตัวเลขเป็น 0.00 และใส่ comma
                 input.value = parseFloat(value).toLocaleString('en-US', { 
                     minimumFractionDigits: 2, 
                     maximumFractionDigits: 2
                 });
             } else if (value === '') {
                 input.value = '';
+            } else {
+                 input.value = '0.00';
             }
         }
 
         document.querySelectorAll('input[type="text"][id]').forEach(input => {
-            if (!input.readOnly && (input.id.includes('_sale') || input.id.includes('_profit') || input.id.includes('_wasted_value') || input.id.includes('_closestock_value'))) {
+            // ใช้ blur สำหรับการจัดรูปแบบตัวเลขที่มี comma (Sale, Profit, Wasted, Closestock)
+            if (!input.readOnly && !input.id.includes('_margin') && input.id !== 'total_days') {
                 input.addEventListener('blur', function() {
                     formatNumberInput(this);
                 });
@@ -433,7 +452,7 @@
         });
 
 
-        // 3. ฟังก์ชันคำนวณหลักต่อแถว (เรียกใช้ GrandTotal หลังคำนวณแต่ละแถว)
+        // 3. ฟังก์ชันคำนวณหลักต่อแถว (Margin ไม่ถูกคำนวณ)
         function calculateRow(prefix) {
             const sale = getNum(prefix + 'sale');
             const wastedValue = getNum(prefix + 'wasted_value');
@@ -441,14 +460,18 @@
 
             const totalDays = getTotalDays(); 
             
+            // --- คำนวณ ---
             const salePerDay = sale / totalDays; 
             const wastedPercent = (sale > 0) ? (wastedValue / sale) * 100 : 0;
             const closestockDays = (salePerDay > 0) ? closestockValue / salePerDay : 0;
+            // Margin ไม่ถูกคำนวณ
 
-            const formatNum = (num) => isFinite(num) ? num.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '0.00';
-            const formatPercent = (num) => isFinite(num) && num !== 0 ? num.toFixed(2) + '%' : '0.00%';
+            // --- ฟังก์ชันจัดรูปแบบ ---
+            const formatNum = (num) => isFinite(num) ? num.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '0.00'; 
+            const formatPercent = (num) => isFinite(num) ? num.toFixed(2) + '%' : '0.00%';
             const formatDays = (num) => isFinite(num) && num > 0 ? num.toFixed(2) + ' วัน' : '0.00 วัน'; 
 
+            // --- กำหนดค่าที่คำนวณได้ ---
             const saleDayInput = document.getElementById(prefix + 'sale_day');
             const wastedPercentInput = document.getElementById(prefix + 'wasted_percent');
             const closestockDaysInput = document.getElementById(prefix + 'closestock_days');
@@ -460,7 +483,7 @@
             calculateGrandTotal();
         }
         
-        // 4. ฟังก์ชันคำนวณยอดรวมทั้งหมด (Grand Total)
+        // 4. ฟังก์ชันคำนวณยอดรวมทั้งหมด (Grand Total) - เพื่ออัปเดตช่องด้านล่าง
         function calculateGrandTotal() {
             let totalSale = 0;
             let totalProfit = 0;
@@ -480,7 +503,7 @@
             const averageClosestockDays = (totalSalePerDay > 0) ? totalCloseStockValue / totalSalePerDay : 0;
 
             const formatNum = (num) => isFinite(num) ? num.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '0.00';
-            const formatPercent = (num) => isFinite(num) && num !== 0 ? num.toFixed(2) + '%' : '0.00%';
+            const formatPercent = (num) => isFinite(num) ? num.toFixed(2) + '%' : '0.00%';
             const formatDays = (num) => isFinite(num) && num > 0 ? num.toFixed(2) + ' วัน' : '0.00 วัน';
 
             document.getElementById('total_sale').value = formatNum(totalSale);
@@ -499,10 +522,7 @@
             calculateGrandTotal();
         }
         
-        document.addEventListener('DOMContentLoaded', calculateAll);
-
-
-        // 6. ฟังก์ชันสำหรับสร้างและคัดลอก Report ทั้งหมด (ปรับปรุงตามคำขอ)
+        // 6. ฟังก์ชันสำหรับสร้างและคัดลอก Report ทั้งหมด (ลบส่วนรวมออกตามคำขอ)
         function copyReport() {
             calculateAll(); 
 
@@ -520,9 +540,9 @@
 
             if (!location || !date) return;
 
-            let reportText = `แจ้งยอดปิดสต๊อกสาขา${location}\nวันที่ ${date}\n\n`; // ลบจำนวนวันออก
+            let reportText = `แจ้งยอดปิดสต๊อกสาขา${location}\nวันที่ ${date}\n\n`;
 
-            const totalDays = getTotalDays(); // ยังจำเป็นต้องใช้ในการคำนวณ Report 
+            const totalDays = getTotalDays(); 
             const formatNum = (num) => isFinite(num) ? num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00';
             const formatPercent = (num) => isFinite(num) ? num.toFixed(2) : '0.00';
             const formatDays = (num) => isFinite(num) && num > 0 ? num.toFixed(2) : '0.00';
@@ -533,8 +553,10 @@
                 const prefix = item.id;
                 const sale = getNum(prefix + 'sale');
                 const profit = getNum(prefix + 'profit');
-                const margin = getNum(prefix + 'margin');
                 const wastedValue = getNum(prefix + 'wasted_value');
+                
+                // ดึงค่า Margin ที่ผู้ใช้กรอก (ใช้ getNum ซึ่งดึงค่าจาก type="number" ได้)
+                const marginPercent = getNum(prefix + 'margin'); 
                 
                 const salePerDay = sale / totalDays; 
                 const wastedPercent = (sale > 0) ? (wastedValue / sale) * 100 : 0;
@@ -545,29 +567,12 @@
                 reportText += `Sale ${formatNum(sale)}\n`;
                 reportText += `Sale/วัน ${formatNum(salePerDay)}\n`;
                 reportText += `Profit ${formatNum(profit)}\n`;
-                reportText += `Margin ${formatPercent(margin)}%\n`;
+                reportText += `Margin ${formatPercent(marginPercent)}%\n`; // ใช้ Margin ที่กรอกเอง
                 reportText += `Shing ${formatPercent(wastedPercent)}%\n`;
                 reportText += `Inventory ${formatDays(closestockDays)} วัน\n\n`;
             });
             
-            // --- ส่วนรายงานยอดรวม (ปรับปรุงตามคำขอ) ---
-            const totalSale = getNum('total_sale');
-            const totalProfit = getNum('total_profit');
-            const totalWastedValue = getNum('total_wasted_value');
-            const overallWastedPercent = (totalSale > 0) ? (totalWastedValue / totalSale) * 100 : 0;
-            const totalSalePerDay = totalSale / totalDays;
-            const totalCloseStockValue = getNum('total_closestock_value');
-            const averageClosestockDays = (totalSalePerDay > 0) ? totalCloseStockValue / totalSalePerDay : 0;
-
-
-            // ลบเส้นคั่นและหัวข้อทั้งหมดออก และใช้คำว่า "รวม" แทน
-            reportText += `***รวมทุกหมวดหมู่***\n`;
-            reportText += `Total Sale ${formatNum(totalSale)}\n`;
-            reportText += `Total Profit ${formatNum(totalProfit)}\n`;
-            reportText += `Total Wasted ${formatNum(totalWastedValue)}\n`;
-            reportText += `Overall Shing ${formatPercent(overallWastedPercent)}%\n`;
-            reportText += `Total CloseStock ${formatNum(totalCloseStockValue)}\n`;
-            reportText += `Average Inventory ${formatDays(averageClosestockDays)} วัน\n\n`;
+            // Report จะจบที่นี่ โดยไม่มีส่วนสรุป Grand Total (ยอดรวมทั้งหมด)
 
             reportText += `แจ้งเพื่อทราบ\nขอบคุณครับ`;
 
